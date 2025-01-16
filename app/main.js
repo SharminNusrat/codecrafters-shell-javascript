@@ -7,11 +7,12 @@ const rl = readline.createInterface({
 
 function askQuestion() {
   rl.question("$ ", (answer) => {
-    if(answer === `exit 0`) {
-      rl.close();
-      return;
-    };
-    console.log(`${answer}: command not found`);
+    // if(answer === `exit 0`) {
+    //   rl.close();
+    //   return;
+    // };
+    let result = answer.slice(5);
+    console.log(result);
     askQuestion();
   });
 };
