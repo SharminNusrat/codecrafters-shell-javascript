@@ -23,11 +23,11 @@ const handleType = (answer) => {
     return;
   }
 
-  const pathDirs = process.env.PATH.split(";");
+  const pathDirs = process.env.PATH.split(path.delimiter);
   for(const dir of pathDirs) {
     const filePath = path.join(dir, command);
 
-    if(fs.existsSync(filePath)) {
+    if(fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
       try {
         fs.accessSync(filePath, fs.constants.X_OK);
         console.log(`${command} is ${filePath}`);
