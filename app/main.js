@@ -51,7 +51,7 @@ const runProgram = (answer) => {
     const filePath = program;
 
     try {
-      const stdout = execFileSync(filePath, args, {
+      const stdout = execFile(filePath, args, {
         stdio: 'pipe',
         encoding: 'utf8',
       });
