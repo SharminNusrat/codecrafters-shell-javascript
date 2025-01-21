@@ -61,7 +61,7 @@ const runProgram = (answer) => {
       return;
     } catch(err) {
       if(err.code) {
-        console.eerror(err.code); 
+        console.error(err.code); 
       } 
       else {
         const {stdout, stderr} = err;
