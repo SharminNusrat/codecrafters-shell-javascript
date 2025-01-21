@@ -10,7 +10,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const supportedTypes = ['type', 'echo', 'exit'];
+const supportedTypes = ['type', 'echo', 'pwd', 'exit'];
 
 const handleEcho = (answer) => {
   let result = answer.slice(5);
