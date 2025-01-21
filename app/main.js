@@ -77,7 +77,8 @@ const runProgram = (answer) => {
 
 const main = () => {
   // console.log(process.argv);
-  rl.question('$ ', (answer) => {
+  process.stdout.write('$ ');
+  rl.question('', (answer) => {
     if (answer === 'exit 0') {
       rl.close();
       return;
