@@ -42,6 +42,10 @@ const handleType = (answer) => {
   console.log(`${command}: not found`);
 }
 
+const handlePwd = (answer) => {
+  process.stdout.write(process.cwd);
+}
+
 const runProgram = (answer) => {
   let args = answer.trim().split(/\s+/);
   const program = args.shift();
@@ -81,6 +85,9 @@ const main = () => {
     }
     else if (answer.startsWith('type ')) {
       handleType(answer);
+    }
+    else if(answer.startsWith('pwd ')) {
+      handlePwd(answer);
     }
     else {
       // console.log(`${answer}: command not found`);
