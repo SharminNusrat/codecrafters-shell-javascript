@@ -45,6 +45,7 @@ const handleType = (answer) => {
 const runProgram = (answer) => {
   let args = answer.trim().split(/\s+/);
   const program = args.shift();
+  let found = false;
   
   for(const dir of pathDirs) {
     // const filePath = path.join(dir, program);
@@ -57,20 +58,14 @@ const runProgram = (answer) => {
       });
 
       process.stdout.write(stdout); 
-
+      found = true;
       return;
-    } catch(err) {
-      if(err.code) {
-        console.error(err.code); 
-      } 
-      else {
-        const {stdout, stderr} = err;
-        console.error({stdout, stderr});
-      }
+    } catch {
+      continue;
     }
   }
 
-  console.log(`${program}: not found`);
+  if(!found) console.log(`${answer}: command not found`);
 }
 
 const main = () => {
