@@ -47,7 +47,8 @@ const runProgram = (answer) => {
   const program = args.shift();
   
   for(const dir of pathDirs) {
-    const filePath = path.join(dir, program);
+    // const filePath = path.join(dir, program);
+    const filePath = program;
 
     try {
       const stdout = execFileSync(filePath, args, {
