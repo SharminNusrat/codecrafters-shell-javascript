@@ -43,7 +43,7 @@ const handleType = (answer) => {
 }
 
 const runProgram = (answer) => {
-  let args = answer.split(" ");
+  let args = answer.trim().split(/\s+/);
   const program = args.shift();
   
   for(const dir of pathDirs) {
@@ -91,7 +91,7 @@ const main = () => {
     }
     else {
       // console.log(`${answer}: command not found`);
-      runProgram();
+      runProgram(answer);
     }
     main();
   });
