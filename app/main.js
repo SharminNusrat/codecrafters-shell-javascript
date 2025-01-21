@@ -53,14 +53,14 @@ const runProgram = (answer) => {
       try {
         const child = spawn(filePath, args);
         child.stdout.on("data", (data) => {
-          console.log(data.toString());
+          process.stdout.write(data.toString());
         });
         child.stderr.on("data", (data) => {
-          console.error(data.toString());
+          process.stderr.write(data.toString());
         });
         child.on("close", (code) => {
           if(code !== 0) {
-            console.error(`${program} exited with code ${code}`);
+            process.stderr.write(`${program} exited with code ${code}`);
           }
         });
 
