@@ -1,7 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { spawn } = require("child_process");
+const { execFileSync } = require("child_process");
 
 const pathDirs = process.env.PATH.split(path.delimiter);
 
@@ -49,25 +49,22 @@ const runProgram = (answer) => {
   for(const dir of pathDirs) {
     const filePath = path.join(dir, program);
 
-    if(fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
-      try {
-        const child = spawn(filePath, args);
-        child.stdout.on("data", (data) => {
-          process.stdout.write(data.toString());
-        });
-        child.stderr.on("data", (data) => {
-          process.stderr.write(data.toString());
-        });
-        child.on("close", (code) => {
-          if(code !== 0) {
-            process.stderr.write(`${program} exited with code ${code}`);
-          }
-        });
+    try {
+      const stdout = execFileSync(filePath, args, {
+        stdio: 'pipe',
+        encoding: 'utf8',
+      });
 
-        return;
-      } catch {
-        console.error(`Error executing ${program}: ${error.message}`);
-        return;
+      console.log(stdout); 
+
+      return;
+    } catch(err) {
+      if(err.code) {
+        console.eerror(err.code); 
+      } 
+      else {
+        const {stdout, stderr} = err;
+        console.error({stdout, stderr});
       }
     }
   }
