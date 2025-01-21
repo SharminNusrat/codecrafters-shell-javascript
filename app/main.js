@@ -51,12 +51,12 @@ const runProgram = (answer) => {
     const filePath = program;
 
     try {
-      const stdout = execFile(filePath, args, {
+      const stdout = execFileSync(filePath, args, {
         stdio: 'pipe',
         encoding: 'utf8',
       });
 
-      console.log(stdout); 
+      process.stdout.write(stdout); 
 
       return;
     } catch(err) {
