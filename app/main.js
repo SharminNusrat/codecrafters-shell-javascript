@@ -1,6 +1,9 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
+const { spawn } = require("child_process");
+
+const pathDirs = process.env.PATH.split(path.delimiter);
 
 const rl = readline.createInterface({
   input: process.stdin,
@@ -23,7 +26,6 @@ const handleType = (answer) => {
     return;
   }
 
-  const pathDirs = process.env.PATH.split(path.delimiter);
   for(const dir of pathDirs) {
     const filePath = path.join(dir, command);
 
@@ -38,6 +40,39 @@ const handleType = (answer) => {
     }
   }
   console.log(`${command}: not found`);
+}
+
+const runProgram = (answer) => {
+  let args = answer.split(" ");
+  const program = args.shift();
+  
+  for(const dir of pathDirs) {
+    const filePath = path.join(dir, program);
+
+    if(fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
+      try {
+        const child = spawn(filePath, args);
+        child.stdout.on("data", (data) => {
+          console.log(data.toString());
+        });
+        child.stderr.on("data", (data) => {
+          console.error(data.toString());
+        });
+        child.on("close", (code) => {
+          if(code !== 0) {
+            console.error(`${program} exited with code ${code}`);
+          }
+        });
+
+        return;
+      } catch {
+        console.error(`Error executing ${program}: ${error.message}`);
+        return;
+      }
+    }
+  }
+
+  console.log(`${program}: not found`);
 }
 
 const main = () => {
@@ -55,7 +90,8 @@ const main = () => {
       handleType(answer);
     }
     else {
-      console.log(`${answer}: command not found`);
+      // console.log(`${answer}: command not found`);
+      runProgram();
     }
     main();
   });
