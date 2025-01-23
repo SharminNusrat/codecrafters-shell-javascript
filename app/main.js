@@ -53,16 +53,11 @@ const handlePwd = (answer) => {
 
 const handleCd = (answer) => {
   const dir = answer.slice(3);
-  let found = false;
 
   try {
     process.chdir(dir);
-    found = true;
   } catch(err) {
-    console.error('Error while changing directory');
-  }
-
-  if(!found) {
+    // console.error('Error while changing directory');
     console.log(`cd: ${dir}: No such file or directory`);
   }
 }
