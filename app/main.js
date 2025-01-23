@@ -10,7 +10,7 @@ const rl = readline.createInterface({
   output: process.stdout,
 });
 
-const supportedTypes = ['type', 'echo', 'pwd', 'exit'];
+const supportedTypes = ['type', 'echo', 'pwd', 'cd', 'exit'];
 
 const handleEcho = (answer) => {
   let result = answer.slice(5);
@@ -48,6 +48,22 @@ const handlePwd = (answer) => {
   }
   else {
     console.log(`${answer}: command not found`);
+  }
+}
+
+const handleCd = (answer) => {
+  const dir = answer.slice(3);
+  let found = false;
+
+  try {
+    process.chdir(dir);
+    found = true;
+  } catch(err) {
+    console.error('Error while changing directory');
+  }
+
+  if(!found) {
+    console.log(`cd: ${dir}: No such file or directory`);
   }
 }
 
@@ -93,6 +109,9 @@ const main = () => {
     }
     else if(answer.startsWith('pwd')) {
       handlePwd(answer);
+    }
+    else if(answer.startsWith('cd ')) {
+      handleCd(answer);
     }
     else {
       // console.log(`${answer}: command not found`);
