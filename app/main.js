@@ -2,6 +2,7 @@ const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
 const { execFileSync } = require("child_process");
+const os = require('os');
 
 const pathDirs = process.env.PATH.split(path.delimiter);
 
@@ -52,7 +53,10 @@ const handlePwd = (answer) => {
 }
 
 const handleCd = (answer) => {
-  const dir = answer.slice(3);
+  let dir = answer.slice(3);
+  if(dir === '~') {
+    dir = os.homedir();
+  }
 
   try {
     process.chdir(dir);
