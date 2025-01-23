@@ -57,7 +57,6 @@ const handleCd = (answer) => {
   try {
     process.chdir(dir);
   } catch(err) {
-    // console.error('Error while changing directory');
     console.log(`cd: ${dir}: No such file or directory`);
   }
 }
@@ -89,7 +88,6 @@ const runProgram = (answer) => {
 }
 
 const main = () => {
-  // console.log(process.argv);
   rl.question('$ ', (answer) => {
     if (answer === 'exit 0') {
       rl.close();
