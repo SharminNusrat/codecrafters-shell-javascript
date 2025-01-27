@@ -13,8 +13,42 @@ const rl = readline.createInterface({
 
 const supportedTypes = ['type', 'echo', 'pwd', 'cd', 'exit'];
 
-const handleEcho = (answer) => {
-  let result = answer.slice(5);
+const handleSingleQuote = (answer) => {
+  let currentArg = "";
+  let args = [];
+  let inQuotes = false;
+
+  for(const char of answer) {
+    if(char === "'" && !inQuotes) {
+      inQuotes = true;
+      continue;
+    }
+    else if(char === "'" && inQuotes) {
+      inQuotes = false;
+    } 
+    else if(!inQuotes && char === " ") {
+       if(currentArg.length) {
+        args.push(currentArg);
+        currentArg = "";
+       }
+    }
+    else {
+      currentArg += char;
+    }
+  }
+  if(currentArg.length > 0) {
+    args.push(currentArg);
+  }
+
+  if(inQuotes) {
+    throw new Error("Unmatched single quote.");
+  }
+
+  return args;
+}
+
+const handleEcho = (args) => {
+  let result = args.join(" ");
   console.log(result);
 }
 
@@ -66,7 +100,12 @@ const handleCd = (answer) => {
 }
 
 const runProgram = (answer) => {
-  let args = answer.trim().split(/\s+/);
+  let args;
+  if(answer.indexOf("'") !== -1) {
+    args = handleSingleQuote(answer);
+  }
+  else args = answer.trim().split(/\s+/);
+  
   const program = args.shift();
   let found = false;
   
@@ -97,9 +136,12 @@ const main = () => {
       rl.close();
       return;
     }
+    let args = [];
+    args = handleSingleQuote(answer);
+    args.shift();
 
     if (answer.startsWith('echo ')) {
-      handleEcho(answer);
+      handleEcho(args);
     }
     else if (answer.startsWith('type ')) {
       handleType(answer);
