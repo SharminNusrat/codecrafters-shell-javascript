@@ -39,7 +39,8 @@ const handleSingleQuotes = (answer) => {
     }
   }
   if(currentArg.length > 0) {
-    args.push(currentArg);
+    // args.push(currentArg);
+    args.push(currentArg.replace(/^['"]|['"]$/g, ""));
   }
 
   if(inQuotes) {
