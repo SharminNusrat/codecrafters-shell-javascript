@@ -57,7 +57,8 @@ const handleDoubleQuotes = (answer) => {
   let escaped = false;
   let hasUnmatchedQuote = false;
 
-  for(const char of answer) {
+  for(let i=0; i<answer.length; i++) {
+    const char = answer[i];
     if(inQuotes) {
       if(escaped) {
         if(char === '$' || char === '\\' || char === '"') {
@@ -74,6 +75,11 @@ const handleDoubleQuotes = (answer) => {
         else if(char === '"') {
           inQuotes = false;
           hasUnmatchedQuote = false;
+          if (i + 1 < answer.length && answer[i + 1] === '"') {
+            inQuotes = true;
+            hasUnmatchedQuote = true;
+            i++; 
+          }
         } 
         else {
           currentArg += char;
