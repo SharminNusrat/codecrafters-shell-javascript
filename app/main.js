@@ -29,7 +29,8 @@ const handleSingleQuotes = (answer) => {
     } 
     else if(!inQuotes && char === " ") {
        if(currentArg.length) {
-        args.push(currentArg);
+        // args.push(currentArg);
+        args.push(currentArg.replace(/^['"]|['"]$/g, ""));
         currentArg = "";
        }
     }
@@ -88,7 +89,8 @@ const handleDoubleQuotes = (answer) => {
       } 
       else if(char === ' ') {
         if(currentArg.length) {
-          args.push(currentArg);
+          // args.push(currentArg);
+          args.push(currentArg.replace(/^['"]|['"]$/g, ""));
           currentArg = "";
         }
       }
@@ -99,7 +101,8 @@ const handleDoubleQuotes = (answer) => {
   }
 
   if(currentArg.length > 0) {
-    args.push(currentArg);
+    // args.push(currentArg);
+    args.push(currentArg.replace(/^['"]|['"]$/g, ""));
   }
 
   if(inQuotes) {
