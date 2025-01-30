@@ -13,17 +13,18 @@ const rl = readline.createInterface({
 
 const supportedTypes = ['type', 'echo', 'pwd', 'cd', 'exit'];
 
-const handleSingleQuote = (answer) => {
+const handleSingleQuotes = (answer) => {
   let currentArg = "";
   let args = [];
   let inQuotes = false;
 
+  const singleQuote = "\'";
+
   for(const char of answer) {
-    if(char === "'" && !inQuotes) {
+    if(char === singleQuote && !inQuotes) {
       inQuotes = true;
-      continue;
     }
-    else if(char === "'" && inQuotes) {
+    else if(char === singleQuote && inQuotes) {
       inQuotes = false;
     } 
     else if(!inQuotes && char === " ") {
@@ -42,6 +43,67 @@ const handleSingleQuote = (answer) => {
 
   if(inQuotes) {
     throw new Error("Unmatched single quote.");
+  }
+
+  return args;
+}
+
+const handleDoubleQuotes = (answer) => {
+  let currentArg = "";
+  let args = [];
+  let inQuotes = false;
+  let escaped = false;
+  let hasUnmatchedQuote = false;
+
+  for(const char of answer) {
+    if(inQuotes) {
+      if(escaped) {
+        if(char === '$' || char === '\\' || char === '"') {
+          currentArg += char;
+        } else {
+          currentArg += '\\' + char;
+        }
+        escaped = false;
+      } 
+      else {
+        if(char === '\\') {
+          escaped = true;
+        }
+        else if(char === '"') {
+          inQuotes = false;
+          hasUnmatchedQuote = false;
+        } 
+        else {
+          currentArg += char;
+        }
+      }
+    }
+    else {
+      if(char === '"') {
+        if(hasUnmatchedQuote) {
+          throw new Error("Unmatched double quote");
+        }
+        inQuotes = true;
+        hasUnmatchedQuote = true;
+      } 
+      else if(char === ' ') {
+        if(currentArg.length) {
+          args.push(currentArg);
+          currentArg = "";
+        }
+      }
+      else {
+        currentArg += char;
+      }
+    }
+  }
+
+  if(currentArg.length > 0) {
+    args.push(currentArg);
+  }
+
+  if(inQuotes) {
+    throw new Error("Unmatched double quote.");
   }
 
   return args;
@@ -99,12 +161,12 @@ const handleCd = (answer) => {
   }
 }
 
-const runProgram = (answer) => {
-  let args;
-  if(answer.indexOf("'") !== -1) {
-    args = handleSingleQuote(answer);
-  }
-  else args = answer.trim().split(/\s+/);
+const runProgram = (answer, args) => {
+  // let args;
+  // if(answer.indexOf("'") !== -1) {
+  //   args = handleSingleQuote(answer);
+  // }
+  // else args = answer.trim().split(/\s+/);
   
   const program = args.shift();
   let found = false;
@@ -137,10 +199,22 @@ const main = () => {
       return;
     }
     let args = [];
-    args = handleSingleQuote(answer);
-    args.shift();
+    const singleQuote = "'";
+    const doubleQuote = '"';
+    
+    let singleQuotePosition = answer.indexOf(singleQuote);
+    let doubleQuotePosition = answer.indexOf(doubleQuote);
+    
+    if(doubleQuotePosition === -1 || singleQuotePosition < doubleQuotePosition) {
+      args = handleSingleQuotes(answer);
+    } 
+    else if(singleQuotePosition === -1 || singleQuotePosition > doubleQuotePosition) {
+      args = handleDoubleQuotes(answer);
+    } 
+    else args = answer.trim().split(/\s+/);
 
     if (answer.startsWith('echo ')) {
+      args.shift();
       handleEcho(args);
     }
     else if (answer.startsWith('type ')) {
@@ -154,7 +228,7 @@ const main = () => {
     }
     else {
       // console.log(`${answer}: command not found`);
-      runProgram(answer);
+      runProgram(answer, args);
     }
     main();
   });
