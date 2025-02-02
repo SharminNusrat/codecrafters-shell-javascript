@@ -13,53 +13,54 @@ const rl = readline.createInterface({
 
 const supportedTypes = ['type', 'echo', 'pwd', 'cd', 'exit'];
 
-const handleSingleQuotes = (answer) => {
+const parseInput = (answer) => {
   let currentArg = "";
   let args = [];
-  let inQuotes = false;
-
-  const singleQuote = "\'";
-
-  for (const char of answer) {
-    if (char === singleQuote && !inQuotes) {
-      inQuotes = true;
-    }
-    else if (char === singleQuote && inQuotes) {
-      inQuotes = false;
-    }
-    else if (!inQuotes && char === " ") {
-      if (currentArg.length) {
-        args.push(currentArg);
-        // args.push(currentArg.replace(/^['"]|['"]$/g, ""));
-        currentArg = "";
-      }
-    }
-    else {
-      currentArg += char;
-    }
-  }
-  if (currentArg.length > 0) {
-    args.push(currentArg);
-    // args.push(currentArg.replace(/^['"]|['"]$/g, ""));
-  }
-
-  if (inQuotes) {
-    throw new Error("Unmatched single quote.");
-  }
-
-  return args;
-}
-
-const handleDoubleQuotes = (answer) => {
-  let currentArg = "";
-  let args = [];
-  let inQuotes = false;
+  let inSingleQuotes = false;
+  let inDoubleQuotes = false;
   let escaped = false;
   let hasUnmatchedQuote = false;
 
+  const singleQuote = "'";
+  const doubleQuote = '"';
+
   for (let i = 0; i < answer.length; i++) {
     const char = answer[i];
-    if (inQuotes) {
+
+    if (!inSingleQuotes && !inDoubleQuotes) {
+      if (char === singleQuote) {
+        inSingleQuotes = true;
+      }
+      else if (char === doubleQuote) {
+        if (hasUnmatchedQuote || currentArg.length) {
+          throw new Error("Unmatched double quote");
+        }
+        inDoubleQuotes = true;
+        hasUnmatchedQuote = true;
+      }
+      else if (char === " ") {
+        if(escaped) {
+          currentArg += char;
+        }
+        else if(currentArg.length) {
+          args.push(currentArg);
+          currentArg = "";
+        }
+      }
+      else if(char === "\\") {
+        escaped = true;
+      }
+      else currentArg += char;
+    }
+    else if (inSingleQuotes) {
+      if (char === singleQuote) {
+        inSingleQuotes = false;
+      }
+      else {
+        currentArg += char
+      }
+    }
+    else if (inDoubleQuotes) {
       if (escaped) {
         if (char === '$' || char === '\\' || char === '"') {
           currentArg += char;
@@ -72,13 +73,17 @@ const handleDoubleQuotes = (answer) => {
         if (char === '\\') {
           escaped = true;
         }
-        else if (char === '"') {
-          inQuotes = false;
-          hasUnmatchedQuote = false;
-          if (i + 1 < answer.length && answer[i + 1] === '"') {
-            inQuotes = true;
-            hasUnmatchedQuote = true;
+        else if (char === doubleQuote) {
+          if (i + 1 < answer.length && answer[i + 1] === doubleQuote) {
             i++;
+          }
+          else {
+            inDoubleQuotes = false;
+            hasUnmatchedQuote = false;
+            if (currentArg.length) {
+              args.push(currentArg);
+              currentArg = "";
+            }
           }
         }
         else {
@@ -86,33 +91,16 @@ const handleDoubleQuotes = (answer) => {
         }
       }
     }
-    else {
-      if (char === '"') {
-        if (hasUnmatchedQuote) {
-          throw new Error("Unmatched double quote");
-        }
-        inQuotes = true;
-        hasUnmatchedQuote = true;
-      }
-      else if (char === ' ') {
-        if (currentArg.length) {
-          args.push(currentArg);
-          // args.push(currentArg.replace(/^['"]|['"]$/g, ""));
-          currentArg = "";
-        }
-      }
-      else {
-        currentArg += char;
-      }
-    }
   }
 
   if (currentArg.length > 0) {
     args.push(currentArg);
-    // args.push(currentArg.replace(/^['"]|['"]$/g, ""));
   }
 
-  if (inQuotes) {
+  if (inSingleQuotes) {
+    throw new Error("Unmatched single quote.");
+  }
+  if (inDoubleQuotes || hasUnmatchedQuote) {
     throw new Error("Unmatched double quote.");
   }
 
@@ -172,12 +160,6 @@ const handleCd = (answer) => {
 }
 
 const runProgram = (answer, args) => {
-  // let args;
-  // if(answer.indexOf("'") !== -1) {
-  //   args = handleSingleQuote(answer);
-  // }
-  // else args = answer.trim().split(/\s+/);
-
   const program = args.shift();
   let found = false;
 
@@ -209,36 +191,8 @@ const main = () => {
       return;
     }
     let args = [];
-    const singleQuote = "'";
-    const doubleQuote = '"';
-
-    let singleQuotePosition = answer.indexOf(singleQuote);
-    let doubleQuotePosition = answer.indexOf(doubleQuote);
-
-    // if(doubleQuotePosition === -1 || singleQuotePosition < doubleQuotePosition) {
-    //   args = handleSingleQuotes(answer);
-    // } 
-    // else if(singleQuotePosition === -1 || singleQuotePosition > doubleQuotePosition) {
-    //   args = handleDoubleQuotes(answer);
-    // } 
-    // else args = answer.trim().split(/\s+/);
-
-    if (doubleQuotePosition === -1 && singleQuotePosition === -1) {
-      // No quotes at all
-      args = answer.trim().split(/\s+/);
-    }
-    else if (doubleQuotePosition === -1) {
-      // Only single quotes exist
-      args = handleSingleQuotes(answer);
-    }
-    else if (singleQuotePosition === -1 || doubleQuotePosition < singleQuotePosition) {
-      // Only double quotes exist OR double quotes appear first
-      args = handleDoubleQuotes(answer);
-    }
-    else {
-      // Single quotes appear first
-      args = handleSingleQuotes(answer);
-    }
+    args = parseInput(answer);
+    // console.log(args);
 
     if (answer.startsWith('echo ')) {
       args.shift();
@@ -254,7 +208,6 @@ const main = () => {
       handleCd(answer);
     }
     else {
-      // console.log(`${answer}: command not found`);
       runProgram(answer, args);
     }
     main();
