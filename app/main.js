@@ -154,8 +154,7 @@ const main = () => {
     }
     let args = [];
     args = parseInput(answer);
-    // console.log(args);
-
+    
     if (answer.startsWith('echo ')) {
       args.shift();
       handleEcho(args);
