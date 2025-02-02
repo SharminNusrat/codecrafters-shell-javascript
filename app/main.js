@@ -77,7 +77,6 @@ const handleEcho = (args) => {
 const handleType = (answer) => {
   let command = answer.slice(5);
 
-  // console.log(process.env.PATH);
   if (supportedTypes.indexOf(command) > -1) {
     console.log(`${command} is a shell builtin`);
     return;
@@ -88,7 +87,6 @@ const handleType = (answer) => {
 
     if (fs.existsSync(filePath) && fs.statSync(filePath).isFile()) {
       try {
-        fs.accessSync(filePath, fs.constants.X_OK);
         console.log(`${command} is ${filePath}`);
         return;
       } catch {
@@ -154,7 +152,7 @@ const main = () => {
     }
     let args = [];
     args = parseInput(answer);
-    
+
     if (answer.startsWith('echo ')) {
       args.shift();
       handleEcho(args);
