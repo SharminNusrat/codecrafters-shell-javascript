@@ -123,21 +123,19 @@ const handleCd = (answer) => {
 const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>');
 
-  let command = args.slice(0, operatorIdx);
-  command = command.join(' ');
+  let command = args.slice(0, operatorIdx).join(' ');
   const outputFile = args[operatorIdx + 1];
 
   try {
     const output = execSync(command, {
       encoding: 'utf-8',
-      stdio: 'pipe'
     });
     fs.writeFileSync(outputFile, output);
   } catch (error) {
     if (error.stdout) {
       fs.writeFileSync(outputFile, error.stdout.toString());
-    } else if(stderr){
-      fs.writeFileSync(outputFile, stderr.toString); 
+    } else if(error.stderr){
+      fs.writeFileSync(outputFile, error.stderr.toString()); 
     }
   }
 }
