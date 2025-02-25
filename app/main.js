@@ -1,7 +1,7 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { execFileSync, exec } = require("child_process");
+const { execFileSync, execSync, exec } = require("child_process");
 const os = require('os');
 const { stderr } = require("process");
 
