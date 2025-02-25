@@ -120,8 +120,8 @@ const handleCd = (answer) => {
   }
 }
 
-const handleRedirection = (answer, args) => {
-  const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
+const handleRedirection = (args) => {
+  const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>');
 
   let command = args.slice(0, operatorIdx);
   command = command.join(' ');
@@ -133,11 +133,10 @@ const handleRedirection = (answer, args) => {
     });
     fs.writeFileSync(outputFile, output);
   } catch (error) {
-    // console.log(`${error}`);
     if (error.stdout) {
       fs.writeFileSync(outputFile, error.stdout.toString());
     } else {
-      fs.writeFileSync(outputFile, ''); 
+      fs.writeFileSync(outputFile, stderr.toString); 
     }
   }
 }
@@ -176,7 +175,7 @@ const main = () => {
     args = parseInput(answer);
 
     if (args.includes('>') || args.includes('1>')) {
-      handleRedirection(answer, args);
+      handleRedirection(args);
     }
     else if (answer.startsWith('echo ')) {
       args.shift();
