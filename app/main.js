@@ -129,15 +129,16 @@ const handleRedirection = (args) => {
 
   try {
     const output = execSync(command, {
-      encoding: 'utf-8'
+      encoding: 'utf-8',
+      stdio: 'pipe'
     });
     fs.writeFileSync(outputFile, output);
   } catch (error) {
-    // if (error.stdout) {
-    //   fs.writeFileSync(outputFile, error.stdout.toString());
-    // } else {
+    if (error.stdout) {
+      fs.writeFileSync(outputFile, error.stdout.toString());
+    } else if(stderr){
       fs.writeFileSync(outputFile, stderr.toString); 
-    // }
+    }
   }
 }
 
