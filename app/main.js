@@ -1,8 +1,9 @@
 const readline = require("readline");
 const fs = require("fs");
 const path = require("path");
-const { execFileSync } = require("child_process");
+const { execFileSync, exec } = require("child_process");
 const os = require('os');
+const { stderr } = require("process");
 
 const pathDirs = process.env.PATH.split(path.delimiter);
 
@@ -119,6 +120,18 @@ const handleCd = (answer) => {
   }
 }
 
+const handleRedirection = (answer, args) => {
+  // const operatorIdx = args.indexOf('>') || args.indexOf('1>');
+  const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
+  
+  const command = args.slice(0, operatorIdx);
+  const outputFile = args[operatorIdx + 1];
+
+  exec(command, (error, stdout, stderr) => {
+    fs.writeFile(outputFile, stdout);
+  });
+}
+
 const runProgram = (answer, args) => {
   const program = args.shift();
   let found = false;
@@ -153,6 +166,8 @@ const main = () => {
     let args = [];
     args = parseInput(answer);
 
+    // console.log(args);
+
     if (answer.startsWith('echo ')) {
       args.shift();
       handleEcho(args);
@@ -165,6 +180,9 @@ const main = () => {
     }
     else if (answer.startsWith('cd ')) {
       handleCd(answer);
+    }
+    else if (args.includes('>') || args.includes('1>')) {
+      handleRedirection(answer, args);
     }
     else {
       runProgram(answer, args);
