@@ -140,6 +140,9 @@ const handleRedirection = (args) => {
       fs.writeFileSync(outputFile, '');
     }
   } catch (error) {
+    if(error.stdout) {
+      fs.writeFileSync(outputFile, error.stdout.toString());
+    }
     if(operator === '2>') {
       fs.writeFileSync(outputFile, error.stderr ? error.stderr.toString() : '');
     }
