@@ -134,7 +134,7 @@ const handleRedirection = (answer, args) => {
     });
     fs.writeFileSync(outputFile, output);
   } catch (error) {
-    console.log(`${error}`);
+    // console.log(`${error}`);
     fs.writeFileSync(outputFile, '');
   }
 }
