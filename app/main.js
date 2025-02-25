@@ -124,7 +124,9 @@ const handleRedirection = (answer, args) => {
   // const operatorIdx = args.indexOf('>') || args.indexOf('1>');
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
   
-  const command = args.slice(0, operatorIdx);
+  let command = args.slice(0, operatorIdx);
+  command = command.join(' ');
+  console.log(command);
   const outputFile = args[operatorIdx + 1];
 
   exec(command, (error, stdout, stderr) => {
