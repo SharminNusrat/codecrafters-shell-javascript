@@ -125,7 +125,7 @@ const handleRedirection = (answer, args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
   
   let command = args.slice(0, operatorIdx);
-  // command = command.join(' ');
+  command = command.join(' ');
   const outputFile = args[operatorIdx + 1];
 
   try {
