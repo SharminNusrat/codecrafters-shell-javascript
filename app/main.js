@@ -175,8 +175,10 @@ const main = () => {
     args = parseInput(answer);
 
     // console.log(args);
-
-    if (answer.startsWith('echo ')) {
+    if (args.includes('>') || args.includes('1>')) {
+      handleRedirection(answer, args);
+    }
+    else if (answer.startsWith('echo ')) {
       args.shift();
       handleEcho(args);
     }
@@ -188,9 +190,6 @@ const main = () => {
     }
     else if (answer.startsWith('cd ')) {
       handleCd(answer);
-    }
-    else if (args.includes('>') || args.includes('1>')) {
-      handleRedirection(answer, args);
     }
     else {
       runProgram(answer, args);
