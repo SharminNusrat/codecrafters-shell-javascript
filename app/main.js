@@ -125,15 +125,13 @@ const handleRedirection = (answer, args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
   
   let command = args.slice(0, operatorIdx);
-  command = command.join(' ');
+  // command = command.join(' ');
   const outputFile = args[operatorIdx + 1];
 
   const stdout = execFileSync(command, {
     encoding: 'utf-8'
   });
-  fs.writeFileSync(outputFile, stdout, (err) => {
-    console.log(`${err}`);
-  });
+  fs.writeFileSync(outputFile, stdout);
 }
 
 const runProgram = (answer, args) => {
