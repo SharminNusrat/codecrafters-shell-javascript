@@ -136,6 +136,9 @@ const handleRedirection = (args) => {
     if(operator === '>' || operator === '1>') {
       fs.writeFileSync(outputFile, output);
     }
+    else if(operator === '2>') {
+      fs.writeFileSync(outputFile, '');
+    }
   } catch (error) {
     if(operator === '2>') {
       fs.writeFileSync(outputFile, error.stderr ? error.stderr.toString() : '');
