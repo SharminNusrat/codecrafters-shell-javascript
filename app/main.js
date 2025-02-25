@@ -129,7 +129,14 @@ const handleRedirection = (answer, args) => {
   const outputFile = args[operatorIdx + 1];
 
   exec(command, (error, stdout, stderr) => {
-    fs.writeFile(outputFile, stdout);
+    fs.writeFile(outputFile, stdout, (err) => {
+      if (err) {
+        console.error(`Error writing to file: ${err}`);
+      }
+    });
+    if(stderr) {
+      process.stderr.write(stderr);
+    }
   });
 }
 
