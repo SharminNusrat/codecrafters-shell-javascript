@@ -124,25 +124,22 @@ const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>');
   const operator = args[operatorIdx];
 
-  let command = args.slice(0, operatorIdx).join(' ');
+  const command = args.slice(0, operatorIdx).join(' ');
   const outputFile = args[operatorIdx + 1];
 
   try {
     const output = execSync(command, {
       encoding: 'utf-8',
-      stdio: 'pipe'
+      stdio: ['pipe', 'pipe', 'pipe']
     });
 
     if(operator === '>' || operator === '1>') {
-      fs.writeFileSync(outputFile, output);
+      fs.writeFileSync(outputFile, output.stdout || '');
     }
     else if(operator === '2>') {
-      fs.writeFileSync(outputFile, '');
+      fs.writeFileSync(outputFile, output.stderr || '');
     }
   } catch (error) {
-    if(error.stdout) {
-      fs.writeFileSync(outputFile, error.stdout.toString());
-    }
     if(operator === '2>') {
       fs.writeFileSync(outputFile, error.stderr ? error.stderr.toString() : '');
     }
