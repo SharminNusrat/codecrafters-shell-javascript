@@ -121,9 +121,8 @@ const handleCd = (answer) => {
 }
 
 const handleRedirection = (answer, args) => {
-  // const operatorIdx = args.indexOf('>') || args.indexOf('1>');
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>');
-  
+
   let command = args.slice(0, operatorIdx);
   command = command.join(' ');
   const outputFile = args[operatorIdx + 1];
@@ -135,7 +134,11 @@ const handleRedirection = (answer, args) => {
     fs.writeFileSync(outputFile, output);
   } catch (error) {
     // console.log(`${error}`);
-    fs.writeFileSync(outputFile, '');
+    if (error.stdout) {
+      fs.writeFileSync(outputFile, error.stdout.toString());
+    } else {
+      fs.writeFileSync(outputFile, ''); 
+    }
   }
 }
 
