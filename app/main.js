@@ -128,7 +128,7 @@ const handleRedirection = (args) => {
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
 
-  if(operatorIdx === '>' || operatorIdx === '1>') {
+  if(operator === '>' || operator === '1>') {
     try {
       const output = execSync(command, {
         encoding: 'utf-8'
@@ -161,7 +161,7 @@ const handleRedirection = (args) => {
         fs.writeFileSync(outputFile, error.stderr.toString());
       }
       else {
-        fs.writeFileSync(outputFile, error.message || '');
+        fs.writeFileSync(outputFile, '');
       }
     }
   } 
