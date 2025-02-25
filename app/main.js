@@ -128,10 +128,15 @@ const handleRedirection = (answer, args) => {
   // command = command.join(' ');
   const outputFile = args[operatorIdx + 1];
 
-  const stdout = execFileSync(command, {
-    encoding: 'utf-8'
-  });
-  fs.writeFileSync(outputFile, stdout);
+  try {
+    const output = execSync(command, {
+      encoding: 'utf-8'
+    });
+    fs.writeFileSync(outputFile, output);
+  } catch (error) {
+    console.log(`${error}`);
+    fs.writeFileSync(outputFile, '');
+  }
 }
 
 const runProgram = (answer, args) => {
