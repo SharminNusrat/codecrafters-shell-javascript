@@ -133,11 +133,11 @@ const handleRedirection = (args) => {
     });
     fs.writeFileSync(outputFile, output);
   } catch (error) {
-    if (error.stdout) {
-      fs.writeFileSync(outputFile, error.stdout.toString());
-    } else {
+    // if (error.stdout) {
+    //   fs.writeFileSync(outputFile, error.stdout.toString());
+    // } else {
       fs.writeFileSync(outputFile, stderr.toString); 
-    }
+    // }
   }
 }
 
