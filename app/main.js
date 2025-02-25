@@ -131,7 +131,9 @@ const handleRedirection = (answer, args) => {
   const stdout = execFileSync(command, {
     encoding: 'utf-8'
   });
-  fs.writeFileSync(outputFile, stdout);
+  fs.writeFileSync(outputFile, stdout, (err) => {
+    console.log(`${err}`);
+  });
 }
 
 const runProgram = (answer, args) => {
