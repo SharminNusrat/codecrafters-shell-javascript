@@ -126,7 +126,6 @@ const handleRedirection = (answer, args) => {
   
   let command = args.slice(0, operatorIdx);
   command = command.join(' ');
-  console.log(command);
   const outputFile = args[operatorIdx + 1];
 
   exec(command, (error, stdout, stderr) => {
