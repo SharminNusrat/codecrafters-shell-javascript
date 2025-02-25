@@ -124,26 +124,47 @@ const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>');
   const operator = args[operatorIdx];
 
-  const command = args.slice(0, operatorIdx).join(' ');
+  const commandParts = args.slice(0, operatorIdx);
+  const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
 
-  try {
-    const output = execSync(command, {
-      encoding: 'utf-8',
-      stdio: ['pipe', 'pipe', 'pipe']
-    });
-
-    if(operator === '>' || operator === '1>') {
-      fs.writeFileSync(outputFile, output.stdout || '');
-    }
-    else if(operator === '2>') {
-      fs.writeFileSync(outputFile, output.stderr || '');
-    }
-  } catch (error) {
-    if(operator === '2>') {
-      fs.writeFileSync(outputFile, error.stderr ? error.stderr.toString() : '');
+  if(operatorIdx === '>' || operatorIdx === '1>') {
+    try {
+      const output = execSync(command, {
+        encoding: 'utf-8'
+      });
+      fs.writeFileSync(outputFile, output);
+    } catch(error) {
+      if(error.stdout) {
+        fs.writeFileSync(outputFile, error.stdout.toString());
+      }
+      else {
+        fs.writeFileSync(outputFile, '');
+      }
     }
   }
+  else if(operator === '2>') {
+    try {
+      const output = execSync(command, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'inherit', 'pipe']
+      });
+
+      if(commandParts[0] === 'echo') {
+        fs.writeFileSync(outputFile, output);
+      } 
+      else {
+        fs.writeFileSync(outputFile, '');
+      }
+    } catch(error) {
+      if(error.stderr) {
+        fs.writeFileSync(outputFile, error.stderr.toString());
+      }
+      else {
+        fs.writeFileSync(outputFile, error.message || '');
+      }
+    }
+  } 
 }
 
 const runProgram = (answer, args) => {
