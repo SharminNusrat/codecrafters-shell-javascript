@@ -128,16 +128,10 @@ const handleRedirection = (answer, args) => {
   command = command.join(' ');
   const outputFile = args[operatorIdx + 1];
 
-  exec(command, (error, stdout, stderr) => {
-    fs.writeFile(outputFile, stdout, (err) => {
-      if (err) {
-        console.error(`Error writing to file: ${err}`);
-      }
-    });
-    if(stderr) {
-      process.stderr.write(stderr);
-    }
+  const stdout = execFileSync(command, {
+    encoding: 'utf-8'
   });
+  fs.writeFileSync(outputFile, stdout);
 }
 
 const runProgram = (answer, args) => {
@@ -145,7 +139,6 @@ const runProgram = (answer, args) => {
   let found = false;
 
   for (const dir of pathDirs) {
-    // const filePath = path.join(dir, program);
     const filePath = program;
 
     try {
@@ -174,7 +167,6 @@ const main = () => {
     let args = [];
     args = parseInput(answer);
 
-    // console.log(args);
     if (args.includes('>') || args.includes('1>')) {
       handleRedirection(answer, args);
     }
