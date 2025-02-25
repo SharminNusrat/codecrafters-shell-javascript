@@ -174,7 +174,7 @@ const main = () => {
     let args = [];
     args = parseInput(answer);
 
-    if (args.includes('>') || args.includes('1>')) {
+    if (args.includes('>') || args.includes('1>') || args.includes('2>')) {
       handleRedirection(args);
     }
     else if (answer.startsWith('echo ')) {
