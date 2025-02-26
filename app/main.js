@@ -130,7 +130,9 @@ const handleRedirection = (args) => {
   const directory = path.dirname(outputFile);
 
   try {
-    fs.mkdirSync(directory, { recursive: true });
+    if (!fs.existsSync(directory)) {
+      fs.mkdirSync(directory, { recursive: true });
+    }
 
     const isAppending = operator.includes('>>');
     const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
