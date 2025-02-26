@@ -121,6 +121,7 @@ const handleCd = (answer) => {
 }
 
 const handleRedirection = (args) => {
+  // console.log('hello');
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
 
   const operator = args[operatorIdx];
@@ -128,12 +129,12 @@ const handleRedirection = (args) => {
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
+  // console.log(directory);
 
-  try {
-    require('child_process').execSync(`mkdir -p ${directory}`);
-  } catch (err) {
-    console.error(`Failed to create directory: ${err.message}`);
-    return;
+  if(!fs.existsSync()) {
+    // console.log('hii');
+    fs.mkdirSync(directory, {recursive: true});
+    // console.log(`Directory created: ${directory}, Exists? ${fs.existsSync(directory)}`);
   }
 
   const isAppending = operator.includes('>>');
@@ -144,6 +145,11 @@ const handleRedirection = (args) => {
       const output = execSync(command, {
         encoding: 'utf-8'
       });
+
+      if (isAppending && !fs.existsSync(outputFile)) {
+        fs.writeFileSync(outputFile, ''); 
+      }
+
       writeMethod(outputFile, output);
     } catch (error) {
       if (error.stdout) {
