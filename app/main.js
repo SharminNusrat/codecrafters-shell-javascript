@@ -121,25 +121,28 @@ const handleCd = (answer) => {
 }
 
 const handleRedirection = (args) => {
-  const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>');
+  const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
   const operator = args[operatorIdx];
 
   const commandParts = args.slice(0, operatorIdx);
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
 
-  if(operator === '>' || operator === '1>') {
+  const isAppending = operator.includes('>>');
+  const writeMode = isAppending ? fs.appendFileSync : fs.writeFileSync;
+
+  if(operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
     try {
       const output = execSync(command, {
         encoding: 'utf-8'
       });
-      fs.writeFileSync(outputFile, output);
+      fs.writeMode(outputFile, output);
     } catch(error) {
       if(error.stdout) {
-        fs.writeFileSync(outputFile, error.stdout.toString());
+        fs.writeMode(outputFile, error.stdout.toString());
       }
       else {
-        fs.writeFileSync(outputFile, '');
+        fs.writeMode(outputFile, '');
       }
     }
   }
@@ -151,17 +154,17 @@ const handleRedirection = (args) => {
       });
 
       if(commandParts[0] === 'echo') {
-        fs.writeFileSync(outputFile, output);
+        fs.writeMode(outputFile, output);
       } 
       else {
-        fs.writeFileSync(outputFile, '');
+        fs.writeMode(outputFile, '');
       }
     } catch(error) {
       if(error.stderr) {
-        fs.writeFileSync(outputFile, error.stderr.toString());
+        fs.writeMode(outputFile, error.stderr.toString());
       }
       else {
-        fs.writeFileSync(outputFile, '');
+        fs.writeMode(outputFile, '');
       }
     }
   } 
