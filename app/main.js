@@ -130,56 +130,56 @@ const handleRedirection = (args) => {
   const directory = path.dirname(outputFile);
 
   try {
-    if (!fs.existsSync(directory)) {
-      fs.mkdirSync(directory, { recursive: true });
+    require('child_process').execSync(`mkdir -p ${directory}`);
+  } catch (err) {
+    console.error(`Failed to create directory: ${err.message}`);
+    return;
+  }
+
+  const isAppending = operator.includes('>>');
+  const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
+
+  if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
+    try {
+      const output = execSync(command, {
+        encoding: 'utf-8'
+      });
+      writeMethod(outputFile, output);
+    } catch (error) {
+      if (error.stdout) {
+        writeMethod(outputFile, error.stdout.toString());
+      }
+      else if (isAppending) { }
+      else {
+        writeMethod(outputFile, '');
+      }
     }
+  }
+  else if (operator === '2>' || operator === '2>>') {
+    try {
+      const output = execSync(command, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'inherit', 'pipe']
+      });
 
-    const isAppending = operator.includes('>>');
-    const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
-
-    if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
-      try {
-        const output = execSync(command, {
-          encoding: 'utf-8'
-        });
+      if (commandParts[0] === 'echo') {
         writeMethod(outputFile, output);
-      } catch (error) {
-        if (error.stdout) {
-          writeMethod(outputFile, error.stdout.toString());
-        }
-        else if (isAppending) { }
-        else {
-          writeMethod(outputFile, '');
-        }
+      }
+      else if (!isAppending) {
+        writeMethod(outputFile, '');
+      }
+    } catch (error) {
+      if (error.stderr) {
+        writeMethod(outputFile, error.stderr.toString());
+      }
+      else if (isAppending) { }
+      else {
+        writeMethod(outputFile, '');
       }
     }
-    else if (operator === '2>' || operator === '2>>') {
-      try {
-        const output = execSync(command, {
-          encoding: 'utf-8',
-          stdio: ['pipe', 'inherit', 'pipe']
-        });
-
-        if (commandParts[0] === 'echo') {
-          writeMethod(outputFile, output);
-        }
-        else if (!isAppending) {
-          writeMethod(outputFile, '');
-        }
-        console.error('Command error (stdout):', error.message);
-      } catch (error) {
-        if (error.stderr) {
-          writeMethod(outputFile, error.stderr.toString());
-        }
-        else if (isAppending) { }
-        else {
-          writeMethod(outputFile, '');
-        }
-        console.error('Command error (stderr):', error.message);
-      }
-    }
-  } catch (error) {console.error('General error:', error.message);}
+  }
 }
+
 
 const runProgram = (answer, args) => {
   const program = args.shift();
