@@ -122,11 +122,14 @@ const handleCd = (answer) => {
 
 const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
-  const operator = args[operatorIdx];
-  
+
+  const operator = args[operatorIdx]; 
   const commandParts = args.slice(0, operatorIdx);
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
+  const directory = path.dirname(outputFile);
+
+  fs.mkdirSync(directory, {recursive: true});
 
   const isAppending = operator.includes('>>');
   const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
