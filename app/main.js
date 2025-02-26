@@ -166,6 +166,7 @@ const handleRedirection = (args) => {
         else if (!isAppending) {
           writeMethod(outputFile, '');
         }
+        console.error('Command error (stdout):', error.message);
       } catch (error) {
         if (error.stderr) {
           writeMethod(outputFile, error.stderr.toString());
@@ -174,9 +175,10 @@ const handleRedirection = (args) => {
         else {
           writeMethod(outputFile, '');
         }
+        console.error('Command error (stderr):', error.message);
       }
     }
-  } catch (error) {}
+  } catch (error) {console.error('General error:', error.message);}
 }
 
 const runProgram = (answer, args) => {
