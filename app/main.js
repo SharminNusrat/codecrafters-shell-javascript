@@ -123,56 +123,58 @@ const handleCd = (answer) => {
 const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
 
-  const operator = args[operatorIdx]; 
+  const operator = args[operatorIdx];
   const commandParts = args.slice(0, operatorIdx);
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
 
-  fs.mkdirSync(directory, {recursive: true});
+  try {
+    fs.mkdirSync(directory, { recursive: true });
 
-  const isAppending = operator.includes('>>');
-  const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
+    const isAppending = operator.includes('>>');
+    const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
 
-  if(operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
-    try {
-      const output = execSync(command, {
-        encoding: 'utf-8'
-      });
-      writeMethod(outputFile, output);
-    } catch(error) {
-      if(error.stdout) {
-        writeMethod(outputFile, error.stdout.toString());
-      }
-      else if(isAppending) {}
-      else {
-        writeMethod(outputFile, '');
-      }
-    }
-  }
-  else if(operator === '2>' || operator === '2>>') {
-    try {
-      const output = execSync(command, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'inherit', 'pipe']
-      });
-
-      if(commandParts[0] === 'echo') {
+    if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
+      try {
+        const output = execSync(command, {
+          encoding: 'utf-8'
+        });
         writeMethod(outputFile, output);
-      } 
-      else if(!isAppending){
-        writeMethod(outputFile, '');
-      }
-    } catch(error) {
-      if(error.stderr) {
-        writeMethod(outputFile, error.stderr.toString());
-      }
-      else if(isAppending) {}
-      else {
-        writeMethod(outputFile, '');
+      } catch (error) {
+        if (error.stdout) {
+          writeMethod(outputFile, error.stdout.toString());
+        }
+        else if (isAppending) { }
+        else {
+          writeMethod(outputFile, '');
+        }
       }
     }
-  } 
+    else if (operator === '2>' || operator === '2>>') {
+      try {
+        const output = execSync(command, {
+          encoding: 'utf-8',
+          stdio: ['pipe', 'inherit', 'pipe']
+        });
+
+        if (commandParts[0] === 'echo') {
+          writeMethod(outputFile, output);
+        }
+        else if (!isAppending) {
+          writeMethod(outputFile, '');
+        }
+      } catch (error) {
+        if (error.stderr) {
+          writeMethod(outputFile, error.stderr.toString());
+        }
+        else if (isAppending) { }
+        else {
+          writeMethod(outputFile, '');
+        }
+      }
+    }
+  } catch (error) {}
 }
 
 const runProgram = (answer, args) => {
