@@ -122,31 +122,32 @@ const handleCd = (answer) => {
 
 const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
-  const operator = args[operatorIdx];
 
+  const operator = args[operatorIdx];
   const commandParts = args.slice(0, operatorIdx);
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
 
   const isAppending = operator.includes('>>');
-  const writeMode = isAppending ? fs.appendFileSync : fs.writeFileSync;
+  const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
 
   if(operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
     try {
       const output = execSync(command, {
         encoding: 'utf-8'
       });
-      fs.writeMode(outputFile, output);
+      writeMethod(outputFile, output);
     } catch(error) {
       if(error.stdout) {
-        fs.writeMode(outputFile, error.stdout.toString());
+        writeMethod(outputFile, error.stdout.toString());
       }
+      else if(isAppending) {}
       else {
-        fs.writeMode(outputFile, '');
+        writeMethod(outputFile, '');
       }
     }
   }
-  else if(operator === '2>') {
+  else if(operator === '2>' || operator === '2>>') {
     try {
       const output = execSync(command, {
         encoding: 'utf-8',
@@ -154,17 +155,18 @@ const handleRedirection = (args) => {
       });
 
       if(commandParts[0] === 'echo') {
-        fs.writeMode(outputFile, output);
+        writeMethod(outputFile, output);
       } 
-      else {
-        fs.writeMode(outputFile, '');
+      else if(!isAppending){
+        writeMethod(outputFile, '');
       }
     } catch(error) {
       if(error.stderr) {
-        fs.writeMode(outputFile, error.stderr.toString());
+        writeMethod(outputFile, error.stderr.toString());
       }
+      else if(isAppending) {}
       else {
-        fs.writeMode(outputFile, '');
+        writeMethod(outputFile, '');
       }
     }
   } 
