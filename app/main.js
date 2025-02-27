@@ -121,7 +121,6 @@ const handleCd = (answer) => {
 }
 
 const handleRedirection = (args) => {
-  // console.log('hello');
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
 
   const operator = args[operatorIdx];
@@ -129,12 +128,9 @@ const handleRedirection = (args) => {
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
-  // console.log(directory);
 
-  if(!fs.existsSync()) {
-    // console.log('hii');
+  if(!fs.existsSync(directory)) {
     fs.mkdirSync(directory, {recursive: true});
-    // console.log(`Directory created: ${directory}, Exists? ${fs.existsSync(directory)}`);
   }
 
   const isAppending = operator.includes('>>');
@@ -145,19 +141,13 @@ const handleRedirection = (args) => {
       const output = execSync(command, {
         encoding: 'utf-8'
       });
-
-      if (isAppending && !fs.existsSync(outputFile)) {
-        fs.writeFileSync(outputFile, ''); 
-      }
-
       writeMethod(outputFile, output);
     } catch (error) {
       if (error.stdout) {
         writeMethod(outputFile, error.stdout.toString());
       }
-      else if (isAppending) { }
-      else {
-        writeMethod(outputFile, '');
+      else if (!isAppending) {
+        writeMethod(outputFile, '')
       }
     }
   }
@@ -165,7 +155,7 @@ const handleRedirection = (args) => {
     try {
       const output = execSync(command, {
         encoding: 'utf-8',
-        stdio: ['pipe', 'inherit', 'pipe']
+        stdio: ['pipe', 'pipe', 'pipe']
       });
 
       if (commandParts[0] === 'echo') {
@@ -178,8 +168,7 @@ const handleRedirection = (args) => {
       if (error.stderr) {
         writeMethod(outputFile, error.stderr.toString());
       }
-      else if (isAppending) { }
-      else {
+      else if (!isAppending){
         writeMethod(outputFile, '');
       }
     }
