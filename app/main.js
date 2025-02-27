@@ -194,17 +194,13 @@ const handleRedirection = (args) => {
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
 
-  console.error(`DEBUG: Redirecting to file: ${outputFile}`);
-  console.error(`DEBUG: Directory is: ${directory}`);
-  
   // Create directory if it doesn't exist
   try {
     if (directory && directory !== '.') {
-      console.error(`DEBUG: Creating directory: ${directory}`);
       fs.mkdirSync(directory, { recursive: true });
     }
   } catch (err) {
-    console.error(`DEBUG: Error creating directory: ${err.message}`);
+    console.error(`Error creating directory: ${err.message}`);
   }
 
   const isAppending = operator.includes('>>');
@@ -212,68 +208,61 @@ const handleRedirection = (args) => {
   if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
     // Handle stdout redirection
     try {
-      console.error(`DEBUG: Executing command for stdout: ${command}`);
+      // Execute command and capture output
       const output = execSync(command, {
         encoding: 'utf-8'
       });
       
-      console.error(`DEBUG: Writing to file: ${outputFile}`);
+      // Write output to file
       if (isAppending) {
         fs.appendFileSync(outputFile, output);
       } else {
         fs.writeFileSync(outputFile, output);
       }
     } catch (error) {
-      console.error(`DEBUG: Command error: ${error.message}`);
-      if (error.stdout) {
-        console.error(`DEBUG: Writing stdout from error`);
-        if (isAppending) {
-          fs.appendFileSync(outputFile, error.stdout.toString());
-        } else {
-          fs.writeFileSync(outputFile, error.stdout.toString());
-        }
-      } else if (!isAppending) {
-        console.error(`DEBUG: Writing empty file`);
+      // The important part: we write an empty file for non-appending operations
+      // and we don't write anything for appending if there's no stdout
+      if (!isAppending) {
         fs.writeFileSync(outputFile, '');
+      }
+      
+      // NOTE: For stdout redirection (> or >>), we don't write stderr output to the file
+      // That's why we don't use error.stderr here - it's the correct behavior
+      if (error.stdout && error.stdout.length > 0) {
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stdout);
+        } else {
+          fs.writeFileSync(outputFile, error.stdout);
+        }
       }
     }
   } else if (operator === '2>' || operator === '2>>') {
     // Handle stderr redirection
     try {
-      console.error(`DEBUG: Executing command for stderr: ${command}`);
+      // Execute command
       execSync(command, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'ignore', 'pipe']
+        encoding: 'utf-8'
       });
       
-      if (commandParts[0] === 'echo') {
-        console.error(`DEBUG: Echo command, writing output`);
-        const output = execSync(command, { encoding: 'utf-8' });
-        if (isAppending) {
-          fs.appendFileSync(outputFile, output);
-        } else {
-          fs.writeFileSync(outputFile, output);
-        }
-      } else if (!isAppending) {
-        console.error(`DEBUG: Writing empty file for successful command`);
+      // For successful commands with no stderr, write empty file if not appending
+      if (!isAppending) {
         fs.writeFileSync(outputFile, '');
       }
     } catch (error) {
-      console.error(`DEBUG: Command error for stderr: ${error.message}`);
+      // This is the key part: for stderr redirection, we want to capture the stderr
       if (error.stderr) {
-        console.error(`DEBUG: Writing stderr from error`);
         if (isAppending) {
-          fs.appendFileSync(outputFile, error.stderr.toString());
+          fs.appendFileSync(outputFile, error.stderr);
         } else {
-          fs.writeFileSync(outputFile, error.stderr.toString());
+          fs.writeFileSync(outputFile, error.stderr);
         }
       } else if (!isAppending) {
-        console.error(`DEBUG: Writing empty file for error`);
         fs.writeFileSync(outputFile, '');
       }
     }
   }
 };
+
 
 
 const runProgram = (answer, args) => {
