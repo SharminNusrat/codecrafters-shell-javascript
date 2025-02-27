@@ -192,38 +192,90 @@ const handleRedirection = (args) => {
   const commandParts = args.slice(0, operatorIdx);
   const command = commandParts.join(' ');
   const outputFile = args[operatorIdx + 1];
-  
-  // Simplify: just create directory with minimal code
   const directory = path.dirname(outputFile);
+
+  // Create directory if it doesn't exist
   try {
-    // Use a single command to ensure directory exists
-    execSync(`mkdir -p ${directory}`);
+    if (directory && directory !== '.') {
+      fs.mkdirSync(directory, { recursive: true });
+    }
   } catch (err) {
-    // Silently continue if mkdir fails
+    console.error(`Error creating directory: ${err.message}`);
   }
 
   const isAppending = operator.includes('>>');
-  const redirectOperator = isAppending ? '>>' : '>';
+  
+  // Special case for echo with stderr redirection
+  if ((operator === '2>' || operator === '2>>') && commandParts[0] === 'echo') {
+    try {
+      const echoOutput = execSync(command, { encoding: 'utf8' });
+      if (isAppending) {
+        fs.appendFileSync(outputFile, echoOutput);
+      } else {
+        fs.writeFileSync(outputFile, echoOutput);
+      }
+    } catch (error) {
+      // Unlikely for echo to fail, but handle it anyway
+      if (error.stdout) {
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stdout);
+        } else {
+          fs.writeFileSync(outputFile, error.stdout);
+        }
+      }
+    }
+    return;
+  }
   
   if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
-    // Use shell redirection directly for stdout
+    // Handle stdout redirection
     try {
-      // Execute the command with shell redirection
-      execSync(`${command} ${redirectOperator} "${outputFile}"`, {
-        shell: true
+      const output = execSync(command, {
+        encoding: 'utf-8'
       });
+      
+      if (isAppending) {
+        fs.appendFileSync(outputFile, output);
+      } else {
+        fs.writeFileSync(outputFile, output);
+      }
     } catch (error) {
-      // Shell will handle the redirection even if command fails
+      // For non-appending operations, create empty file by default
+      if (!isAppending) {
+        fs.writeFileSync(outputFile, '');
+      }
+      
+      // Write stdout if available (command might still produce stdout even when failing)
+      if (error.stdout) {
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stdout);
+        } else {
+          fs.writeFileSync(outputFile, error.stdout);
+        }
+      }
     }
   } else if (operator === '2>' || operator === '2>>') {
-    // Use shell redirection directly for stderr
+    // Handle stderr redirection
     try {
-      // Execute the command with shell redirection for stderr
-      execSync(`${command} 2${redirectOperator} "${outputFile}"`, {
-        shell: true
+      execSync(command, {
+        encoding: 'utf-8'
       });
+      
+      // Command succeeded with no stderr, write empty file if not appending
+      if (!isAppending) {
+        fs.writeFileSync(outputFile, '');
+      }
     } catch (error) {
-      // Shell will handle the redirection even if command fails
+      // Command failed, capture stderr
+      if (error.stderr) {
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stderr);
+        } else {
+          fs.writeFileSync(outputFile, error.stderr);
+        }
+      } else if (!isAppending) {
+        fs.writeFileSync(outputFile, '');
+      }
     }
   }
 };
