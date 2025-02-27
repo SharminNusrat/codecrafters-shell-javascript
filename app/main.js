@@ -129,47 +129,55 @@ const handleRedirection = (args) => {
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
 
-  if(!fs.existsSync(directory)) {
-    fs.mkdirSync(directory, {recursive: true});
+  if(directory && directory !== '.' && !fs.existsSync(directory)) {
+    try {
+      fs.mkdirSync(directory, { recursive: true });
+    } catch (err) {
+      console.error(`Failed to create directory: ${directory}`, err);
+      return;
+    }
   }
 
   const isAppending = operator.includes('>>');
-  const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
+  // const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
+  const flags = isAppending ? {flag: 'a'} : {flag: 'w'};
 
   if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
-    try {
-      const output = execSync(command, {
-        encoding: 'utf-8'
-      });
-      writeMethod(outputFile, output);
-    } catch (error) {
-      if (error.stdout) {
-        writeMethod(outputFile, error.stdout.toString());
-      }
-      else if (!isAppending) {
-        writeMethod(outputFile, '')
-      }
-    }
-  }
-  else if (operator === '2>' || operator === '2>>') {
     try {
       const output = execSync(command, {
         encoding: 'utf-8',
         stdio: ['pipe', 'pipe', 'pipe']
       });
-
-      if (commandParts[0] === 'echo') {
-        writeMethod(outputFile, output);
+      fs.writeFileSync(outputFile, output, flags);
+    } catch (error) {
+      if (error.stdout) {
+        fs.writeFileSync(outputFile, error.stdout.toString(), flags);
       }
       else if (!isAppending) {
-        writeMethod(outputFile, '');
+        fs.writeFileSync(outputFile, '', {flag: 'w'});
       }
+    }
+  }
+  else if (operator === '2>' || operator === '2>>') {
+    try {
+      execSync(command, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
+      
+      if (!isAppending && commandParts[0] !== 'echo') {
+        fs.writeFileSync(outputFile, '', {flag: 'w'});
+        // writeMethod(outputFile, output);
+      }
+      // else if (!isAppending) {
+      //   writeMethod(outputFile, '');
+      // }
     } catch (error) {
       if (error.stderr) {
-        writeMethod(outputFile, error.stderr.toString());
+        fs.writeFileSync(outputFile, error.stderr.toString(), flags);
       }
       else if (!isAppending){
-        writeMethod(outputFile, '');
+        fs.writeFileSync(outputFile, '', {flag: 'w'});
       }
     }
   }
