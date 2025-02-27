@@ -120,6 +120,71 @@ const handleCd = (answer) => {
   }
 }
 
+// const handleRedirection = (args) => {
+//   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
+
+//   const operator = args[operatorIdx];
+//   const commandParts = args.slice(0, operatorIdx);
+//   const command = commandParts.join(' ');
+//   const outputFile = args[operatorIdx + 1];
+//   const directory = path.dirname(outputFile);
+
+//   if(directory && directory !== '.' && !fs.existsSync(directory)) {
+//     try {
+//       fs.mkdirSync(directory, { recursive: true });
+//     } catch (err) {
+//       console.error(`Failed to create directory: ${directory}`, err);
+//       return;
+//     }
+//   }
+
+//   const isAppending = operator.includes('>>');
+//   // const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
+//   const flags = isAppending ? {flag: 'a'} : {flag: 'w'};
+
+//   if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
+//     try {
+//       const output = execSync(command, {
+//         encoding: 'utf-8',
+//         stdio: ['pipe', 'pipe', 'pipe']
+//       });
+//       fs.writeFileSync(outputFile, output, flags);
+//     } catch (error) {
+//       if (error.stdout) {
+//         fs.writeFileSync(outputFile, error.stdout.toString(), flags);
+//       }
+//       else if (!isAppending) {
+//         fs.writeFileSync(outputFile, '', {flag: 'w'});
+//       }
+//     }
+//   }
+//   else if (operator === '2>' || operator === '2>>') {
+//     try {
+//       execSync(command, {
+//         encoding: 'utf-8',
+//         stdio: ['pipe', 'pipe', 'pipe']
+//       });
+      
+//       if (!isAppending && commandParts[0] !== 'echo') {
+//         fs.writeFileSync(outputFile, '', {flag: 'w'});
+//         // writeMethod(outputFile, output);
+//       }
+//       // else if (!isAppending) {
+//       //   writeMethod(outputFile, '');
+//       // }
+//     } catch (error) {
+//       if (error.stderr) {
+//         fs.writeFileSync(outputFile, error.stderr.toString(), flags);
+//       }
+//       else if (!isAppending){
+//         fs.writeFileSync(outputFile, '', {flag: 'w'});
+//       }
+//     }
+//   }
+// }
+
+
+
 const handleRedirection = (args) => {
   const operatorIdx = args.findIndex(arg => arg === '>' || arg === '1>' || arg === '2>' || arg === '>>' || arg === '1>>' || arg === '2>>');
 
@@ -129,59 +194,86 @@ const handleRedirection = (args) => {
   const outputFile = args[operatorIdx + 1];
   const directory = path.dirname(outputFile);
 
-  if(directory && directory !== '.' && !fs.existsSync(directory)) {
-    try {
+  console.error(`DEBUG: Redirecting to file: ${outputFile}`);
+  console.error(`DEBUG: Directory is: ${directory}`);
+  
+  // Create directory if it doesn't exist
+  try {
+    if (directory && directory !== '.') {
+      console.error(`DEBUG: Creating directory: ${directory}`);
       fs.mkdirSync(directory, { recursive: true });
-    } catch (err) {
-      console.error(`Failed to create directory: ${directory}`, err);
-      return;
     }
+  } catch (err) {
+    console.error(`DEBUG: Error creating directory: ${err.message}`);
   }
 
   const isAppending = operator.includes('>>');
-  // const writeMethod = isAppending ? fs.appendFileSync : fs.writeFileSync;
-  const flags = isAppending ? {flag: 'a'} : {flag: 'w'};
-
+  
   if (operator === '>' || operator === '1>' || operator === '>>' || operator === '1>>') {
+    // Handle stdout redirection
     try {
+      console.error(`DEBUG: Executing command for stdout: ${command}`);
       const output = execSync(command, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
-      fs.writeFileSync(outputFile, output, flags);
-    } catch (error) {
-      if (error.stdout) {
-        fs.writeFileSync(outputFile, error.stdout.toString(), flags);
-      }
-      else if (!isAppending) {
-        fs.writeFileSync(outputFile, '', {flag: 'w'});
-      }
-    }
-  }
-  else if (operator === '2>' || operator === '2>>') {
-    try {
-      execSync(command, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe']
+        encoding: 'utf-8'
       });
       
-      if (!isAppending && commandParts[0] !== 'echo') {
-        fs.writeFileSync(outputFile, '', {flag: 'w'});
-        // writeMethod(outputFile, output);
+      console.error(`DEBUG: Writing to file: ${outputFile}`);
+      if (isAppending) {
+        fs.appendFileSync(outputFile, output);
+      } else {
+        fs.writeFileSync(outputFile, output);
       }
-      // else if (!isAppending) {
-      //   writeMethod(outputFile, '');
-      // }
     } catch (error) {
-      if (error.stderr) {
-        fs.writeFileSync(outputFile, error.stderr.toString(), flags);
+      console.error(`DEBUG: Command error: ${error.message}`);
+      if (error.stdout) {
+        console.error(`DEBUG: Writing stdout from error`);
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stdout.toString());
+        } else {
+          fs.writeFileSync(outputFile, error.stdout.toString());
+        }
+      } else if (!isAppending) {
+        console.error(`DEBUG: Writing empty file`);
+        fs.writeFileSync(outputFile, '');
       }
-      else if (!isAppending){
-        fs.writeFileSync(outputFile, '', {flag: 'w'});
+    }
+  } else if (operator === '2>' || operator === '2>>') {
+    // Handle stderr redirection
+    try {
+      console.error(`DEBUG: Executing command for stderr: ${command}`);
+      execSync(command, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'ignore', 'pipe']
+      });
+      
+      if (commandParts[0] === 'echo') {
+        console.error(`DEBUG: Echo command, writing output`);
+        const output = execSync(command, { encoding: 'utf-8' });
+        if (isAppending) {
+          fs.appendFileSync(outputFile, output);
+        } else {
+          fs.writeFileSync(outputFile, output);
+        }
+      } else if (!isAppending) {
+        console.error(`DEBUG: Writing empty file for successful command`);
+        fs.writeFileSync(outputFile, '');
+      }
+    } catch (error) {
+      console.error(`DEBUG: Command error for stderr: ${error.message}`);
+      if (error.stderr) {
+        console.error(`DEBUG: Writing stderr from error`);
+        if (isAppending) {
+          fs.appendFileSync(outputFile, error.stderr.toString());
+        } else {
+          fs.writeFileSync(outputFile, error.stderr.toString());
+        }
+      } else if (!isAppending) {
+        console.error(`DEBUG: Writing empty file for error`);
+        fs.writeFileSync(outputFile, '');
       }
     }
   }
-}
+};
 
 
 const runProgram = (answer, args) => {
