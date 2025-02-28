@@ -141,24 +141,6 @@ const handleRedirection = (args) => {
   const isStderr = operator.startsWith('2');
   const flag = isAppending ? 'a' : 'w';
 
-  if(isStderr && commandParts[0] === 'echo') {
-    try {
-      const output = spawnSync(command, commandArgs, {
-        encoding: 'utf-8',
-        stdio: ['pipe', 'pipe', 'pipe']
-      });
-      fs.writeFileSync(outputFile, output, {flag});
-    } catch (error) {
-      if(error.stdout) {
-        fs.writeFileSync(outputFile, error.stdout, {flag});
-      } 
-      else if (!isAppending) {
-        fs.writeFileSync(outputFile, '', {flag: 'w'});
-      }
-    }
-    return;
-  }
-
   const result = spawnSync(command, commandArgs, {
     encoding: 'utf-8',
     stdio: ['pipe', 'pipe', 'pipe']
@@ -174,8 +156,6 @@ const handleRedirection = (args) => {
     consoleStream.write(consoleOutput);
   }
 }
-
-
 
 const runProgram = (answer, args) => {
   const program = args.shift();
