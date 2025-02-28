@@ -143,7 +143,10 @@ const handleRedirection = (args) => {
 
   if(isStderr && commandParts[0] === 'echo') {
     try {
-      const output = execSync(commandParts.join(' '), {encoding: 'utf-8'});
+      const output = spawnSync(command, commandArgs, {
+        encoding: 'utf-8',
+        stdio: ['pipe', 'pipe', 'pipe']
+      });
       fs.writeFileSync(outputFile, output, {flag});
     } catch (error) {
       if(error.stdout) {
